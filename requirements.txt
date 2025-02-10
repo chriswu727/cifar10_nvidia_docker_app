@@ -4,4 +4,6 @@ python-multipart
 pillow
 torch
 torchvision
-matplotlib 
+matplotlib
+sqlalchemy
+psycopg2-binary 

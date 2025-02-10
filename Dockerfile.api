@@ -5,8 +5,18 @@ WORKDIR /app
 COPY requirements.txt .
 RUN pip install -r requirements.txt
 
+# First create the models directory and make it a Python package
+RUN mkdir -p /app/models
+RUN touch /app/models/__init__.py
+
 # Copy files to correct locations
 COPY app/model.py /app/model.py
 COPY app/main.py /app/main.py
+COPY app/database.py /app/database.py
+COPY app/init_db.py /app/init_db.py
+COPY app/models/database.py /app/models/database.py
+
+# Add current directory to Python path
+ENV PYTHONPATH=/app
 
 CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"] 

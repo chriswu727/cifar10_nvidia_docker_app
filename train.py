@@ -50,7 +50,7 @@ optimizer = optim.SGD(model.parameters(), lr=0.01, momentum=0.9, weight_decay=5e
 scheduler = optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=25)
 
 # Create directories
-os.makedirs('/app/models', exist_ok=True)
+os.makedirs('/app/trained_models', exist_ok=True)
 os.makedirs('/app/results', exist_ok=True)
 
 # Lists to store metrics
@@ -108,7 +108,7 @@ for epoch in range(25):  # 25 epochs
     
     if test_acc > best_acc:
         best_acc = test_acc
-        torch.save(model.state_dict(), '/app/models/cifar10_model.pth')
+        torch.save(model.state_dict(), '/app/trained_models/cifar10_model.pth')
     
     scheduler.step()
 

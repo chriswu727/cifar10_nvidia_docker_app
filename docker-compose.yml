@@ -12,12 +12,15 @@ services:
               capabilities: [gpu]
     volumes:
       - ./results:/app/results
-      - ./models:/app/models
+      - ./trained_models:/app/trained_models
 
   api:
     build: 
       context: .
       dockerfile: Dockerfile.api
+    command: >
+      sh -c "python init_db.py &&
+             uvicorn main:app --host 0.0.0.0 --port 8000"
     ports:
       - "8000:8000"
     deploy:
@@ -28,8 +31,11 @@ services:
               count: 1
               capabilities: [gpu]
     volumes:
-      - ./models:/app/models
+      - ./trained_models:/app/trained_models
+    environment:
+      - DATABASE_URL=postgresql://user:password@db:5432/cifar10db
     depends_on:
+      - db
       - model-service
 
   frontend:
@@ -40,3 +46,17 @@ services:
       - "3000:3000"
     depends_on:
       - api
+
+  db:
+    image: postgres:13
+    environment:
+      - POSTGRES_USER=user
+      - POSTGRES_PASSWORD=password
+      - POSTGRES_DB=cifar10db
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+
+volumes:
+  postgres_data:
