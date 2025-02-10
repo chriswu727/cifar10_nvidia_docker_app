@@ -1,0 +1,22 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Virtual Environment
+venv/
+env/
+
+# Model files and results
+models/*.pth
+results/*
+
+# Node modules
+frontend/node_modules/
+
+# Docker
+.docker/
+
+# IDE
+.vscode/
+.idea/ 

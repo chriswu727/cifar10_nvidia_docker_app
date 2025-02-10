@@ -1,0 +1,250 @@
+Introduction
+I will build a deep learning web application that trains and serves a CIFAR-10 model using deep learning 
+and computer vision techniques. The model will be packaged in an Nvidia Docker container for deployment. 
+The application will have a frontend UI, a backend API, a message broker for task queuing, 
+a reverse proxy for routing, a database for user data, and object storage for managing datasets 
+and model artifacts.
+System Architecture
+1. User Interface (Frontend)(needs coding)
+Purpose: Allows users to upload images, submit training requests, and view results.
+Stack: React.js or Vue.js (for an interactive UI)
+API Calls: Communicates with the backend via REST/GraphQL endpoints.
+
+2. Backend (FastAPI)(needs coding)
+Purpose: Handles user requests, trains the CIFAR-10 model, and serves predictions.
+Stack: FastAPI (for high-performance Python web services)
+Components:
+Training Endpoint: Triggers model training.
+Inference Endpoint: Runs inference on uploaded images.
+Database Interaction: Stores job metadata and user submissions.
+Task Queue: Sends long-running tasks (training/inference) to Celery workers.
+
+3. Model Training & Inference (Nvidia Docker)
+Purpose: Runs CIFAR-10 training and inference inside a container.
+Stack:
+Nvidia Docker: Runs deep learning workloads with GPU acceleration.
+PyTorch/TensorFlow: Model training.
+Docker SDK: Manages containerized training and inference jobs.
+boto3: Stores trained models in MinIO.
+
+4. Message Queue (RabbitMQ + Celery)(needs coding)
+Purpose: Decouples request handling from model processing.
+Stack:
+RabbitMQ: Message broker to manage job queues.
+Celery: Distributed task queue for running training and inference jobs.
+Flower: Monitors Celery task execution.
+
+5. Database (PostgreSQL + SQLAlchemy)
+Purpose: Stores user submissions, model metadata, and request logs.
+Stack:
+PostgreSQL: Main relational database.
+SQLAlchemy + Alembic: ORM and database migrations.
+pgAdmin: Database management UI.
+
+6. Object Storage (MinIO)
+Purpose: Stores datasets, trained models, and inference results.
+Stack:
+MinIO: S3-compatible object storage.
+boto3: Interacts with MinIO from Python.
+
+7. Reverse Proxy (Nginx)(needs coding)
+Purpose: Routes frontend and API requests to appropriate services.
+Stack:
+Nginx: Load balancing and reverse proxying.
+
+8. Logging & Monitoring
+Purpose: Tracks app behavior and detects failures.
+Stack:
+structlog: Structured logging for backend services.
+Sentry SDK: Monitors and captures application errors.
+
+Workflow
+User Uploads Image / Requests Model Training
+Frontend sends request to FastAPI backend.
+Backend stores request details in PostgreSQL.
+Backend sends task to RabbitMQ.
+Celery Worker Processes Request
+If it's a training job, it runs inside the Nvidia Docker container.
+If it's an inference job, it loads the trained model and returns results.
+Results are stored in PostgreSQL and MinIO.
+User Retrieves Results
+Frontend polls the API to fetch results from PostgreSQL / MinIO.
+Nginx routes requests accordingly.
+
+Docker Compose yaml file looks:
+version: '3.8'
+
+services:
+  # Frontend Service
+  frontend:
+    build: ./frontend
+    ports:
+      - "3000:3000"
+    depends_on:
+      - backend
+    networks:
+      - app_network
+
+  # Backend API (FastAPI)
+  backend:
+    build: ./backend
+    ports:
+      - "8000:8000"
+    environment:
+      - DATABASE_URL=postgresql://admin:password@db:5432/app_db
+      - MINIO_ENDPOINT=http://minio:9000
+      - MINIO_ACCESS_KEY=minioadmin
+      - MINIO_SECRET_KEY=minioadmin
+      - RABBITMQ_URL=amqp://rabbitmq
+    depends_on:
+      - db
+      - minio
+      - rabbitmq
+    networks:
+      - app_network
+
+  # CIFAR-10 Model Training (GPU-Enabled)
+  cifar10_trainer:
+    image: your-dockerhub-username/pytorch-cifar:latest
+    container_name: cifar10_trainer
+    runtime: nvidia  # Enables GPU support
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]
+    environment:
+      - RABBITMQ_URL=amqp://rabbitmq
+      - MINIO_ENDPOINT=http://minio:9000
+      - MINIO_ACCESS_KEY=minioadmin
+      - MINIO_SECRET_KEY=minioadmin
+    depends_on:
+      - rabbitmq
+      - minio
+    networks:
+      - app_network
+
+  # PostgreSQL Database
+  db:
+    image: postgres:15
+    container_name: postgres_db
+    restart: always
+    environment:
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: app_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    networks:
+      - app_network
+
+  # MinIO Object Storage
+  minio:
+    image: minio/minio
+    container_name: minio_storage
+    restart: always
+    ports:
+      - "9000:9000"
+      - "9090:9090"
+    environment:
+      MINIO_ROOT_USER: minioadmin
+      MINIO_ROOT_PASSWORD: minioadmin
+    command: server /data --console-address ":9090"
+    volumes:
+      - minio_data:/data
+    networks:
+      - app_network
+
+  # RabbitMQ Message Broker
+  rabbitmq:
+    image: rabbitmq:3-management
+    container_name: rabbitmq_broker
+    restart: always
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    networks:
+      - app_network
+
+  # Celery Worker (For Background Tasks)
+  worker:
+    build: ./worker
+    restart: always
+    depends_on:
+      - backend
+      - rabbitmq
+      - cifar10_trainer
+    environment:
+      - DATABASE_URL=postgresql://admin:password@db:5432/app_db
+      - RABBITMQ_URL=amqp://rabbitmq
+    networks:
+      - app_network
+
+  # Flower (Celery Task Monitoring)
+  flower:
+    image: mher/flower
+    container_name: celery_flower
+    restart: always
+    ports:
+      - "5555:5555"
+    depends_on:
+      - rabbitmq
+      - worker
+    environment:
+      - CELERY_BROKER_URL=amqp://rabbitmq
+    networks:
+      - app_network
+
+  # Reverse Proxy (Nginx)
+  nginx:
+    image: nginx:latest
+    container_name: nginx_proxy
+    ports:
+      - "80:80"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+    depends_on:
+      - frontend
+      - backend
+    networks:
+      - app_network
+
+networks:
+  app_network:
+    driver: bridge
+
+volumes:
+  pgdata:
+  minio_data:
+
+
+
+
+
+
+
+Appendix:
+
+
+Docker + Nvidia Container Runtime
+PostgreSQL
+MinIO
+RabbitMQ
+Python (pip)
+FastAPI
+Pydantic
+Celery
+SQLAlchemy + Alembic
+Docker SDK
+boto3
+structlog
+requests
+pika
+Nginx
+Sentry SDK
+pgAdmin
+Flower
