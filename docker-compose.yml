@@ -2,9 +2,7 @@ version: '3.8'
 
 services:
   model-service:
-    build: 
-      context: .
-      dockerfile: Dockerfile
+    image: chriswyc/pytorch-cifar10-model-service:latest
     deploy:
       resources:
         reservations:
