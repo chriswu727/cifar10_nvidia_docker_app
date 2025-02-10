@@ -12,6 +12,8 @@ RUN apt-get update && apt-get install -y \
 COPY requirements.txt .
 RUN pip install -r requirements.txt
 
+# Copy model.py to root directory
+COPY app/model.py /app/model.py
 COPY train.py /app/train.py
 
 CMD ["python", "train.py"]

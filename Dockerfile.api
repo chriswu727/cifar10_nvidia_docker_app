@@ -5,6 +5,8 @@ WORKDIR /app
 COPY requirements.txt .
 RUN pip install -r requirements.txt
 
-COPY app /app
+# Copy files to correct locations
+COPY app/model.py /app/model.py
+COPY app/main.py /app/main.py
 
 CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"] 

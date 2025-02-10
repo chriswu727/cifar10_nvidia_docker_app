@@ -3,7 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 import torch
 from PIL import Image
 import torchvision.transforms as transforms
-from model import SimpleCNN
+from model import get_model
 import os
 
 app = FastAPI()
@@ -26,7 +26,7 @@ os.makedirs('/app/models', exist_ok=True)
 
 # Load model with full path
 model_path = '/app/models/cifar10_model.pth'
-model = SimpleCNN()
+model = get_model()
 model.load_state_dict(torch.load(model_path))
 model = model.to(device)
 model.eval()
@@ -42,7 +42,7 @@ async def predict(file: UploadFile = File(...)):
     transform = transforms.Compose([
         transforms.Resize((32, 32)),
         transforms.ToTensor(),
-        transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))
+        transforms.Normalize((0.4914, 0.4822, 0.4465), (0.2023, 0.1994, 0.2010))
     ])
     image_tensor = transform(image).unsqueeze(0)
     image_tensor = image_tensor.to(device)  # Move input to GPU
