@@ -34,7 +34,8 @@ services:
       context: .
       dockerfile: Dockerfile.api
     command: >
-      sh -c "python init_db.py &&
+      sh -c "sleep 15 &&
+             python init_db.py &&
              uvicorn main:app --host 0.0.0.0 --port 8000"
     ports:
       - "8000:8000"
