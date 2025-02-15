@@ -37,8 +37,6 @@ services:
       sh -c "sleep 15 &&
              python init_db.py &&
              uvicorn main:app --host 0.0.0.0 --port 8000"
-    ports:
-      - "8000:8000"
     deploy:
       resources:
         reservations:
@@ -60,12 +58,20 @@ services:
     build:
       context: .
       dockerfile: Dockerfile.frontend
-    ports:
-      - "3000:3000"
+    # ports:
+    #   - "3000:3000"
     depends_on:
       - api
 
-  
+  nginx:
+    image: nginx:alpine
+    ports:
+      - "80:80"  # Now the app will be available on port 80
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+    depends_on:
+      - frontend
+      - api
 
 volumes:
   postgres_data:

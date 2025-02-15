@@ -47,7 +47,7 @@ model = model.to(device)
 # Loss and optimizer
 criterion = nn.CrossEntropyLoss()
 optimizer = optim.SGD(model.parameters(), lr=0.01, momentum=0.9, weight_decay=5e-4)
-scheduler = optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=25)
+scheduler = optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=50)
 
 # Create directories
 os.makedirs('/app/trained_models', exist_ok=True)
@@ -73,7 +73,7 @@ def test_accuracy():
 
 # Training loop
 best_acc = 0
-for epoch in range(25):  # 25 epochs
+for epoch in range(50):  # Changed from 25 to 50 epochs
     model.train()
     running_loss = 0.0
     correct = 0

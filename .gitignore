@@ -20,3 +20,6 @@ frontend/node_modules/
 # IDE
 .vscode/
 .idea/ 
+
+# Project specific
+goal.txt 

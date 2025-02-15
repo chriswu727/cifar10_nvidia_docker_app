@@ -2,22 +2,33 @@
 
 A deep learning application that trains and serves a CIFAR-10 image classifier using Docker containers with GPU support.
 
-## Features
+## Architecture & Features
 
-- **Model Training**: Trains a CNN model on the CIFAR-10 dataset using NVIDIA GPU acceleration
-- **FastAPI Backend**: Provides REST API endpoints for image classification
-- **React Frontend**: User interface for uploading images and viewing predictions
-- **PostgreSQL Database**: Stores prediction history with timestamps and confidence scores
-- **Docker Containerization**: All components run in separate containers
-- **GPU Support**: Utilizes NVIDIA GPU for both training and inference
+The application consists of several containerized services:
+1. **Model Training Service** (GPU-enabled)
+   - Trains CNN model on CIFAR-10 dataset
+   - Uses NVIDIA GPU acceleration
 
-## Architecture
+2. **FastAPI Backend**
+   - Provides REST API endpoints
+   - Handles image classification
 
-The application consists of four main services:
-1. **Model Training Service**: Trains the CNN model and saves it
-2. **FastAPI Backend**: Loads the trained model and serves predictions
-3. **React Frontend**: Provides user interface for interaction
-4. **PostgreSQL Database**: Stores prediction history and metadata
+3. **React Frontend**
+   - User interface for image upload
+   - Displays prediction results
+
+4. **PostgreSQL Database**
+   - Stores prediction history
+   - Tracks user activities
+
+5. **Nginx Reverse Proxy**
+   - Routes all traffic through port 80
+   - Simplifies service access
+
+## Access Points
+- Frontend: http://localhost/
+- API Documentation: http://localhost/docs
+- Prediction History: http://localhost/api/predictions
 
 ## Technologies Used
 
