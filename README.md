@@ -13,6 +13,7 @@ The application consists of several containerized services:
    - Provides REST API endpoints
    - Queues prediction tasks
    - Handles image uploads
+   - Monitors container health and GPU status using Docker SDK
 
 3. **RabbitMQ Message Broker**
    - Queues prediction tasks
@@ -62,6 +63,7 @@ The application consists of several containerized services:
 - PostgreSQL
 - SQLAlchemy
 - Docker
+- Docker SDK for Python
 - NVIDIA CUDA
 
 ## API Endpoints
