@@ -93,10 +93,11 @@ services:
       context: .
       dockerfile: Dockerfile.api
     command: celery -A celery_worker worker --loglevel=info --pool=solo
-    volumes:
-      - ./trained_models:/app/trained_models
     environment:
       - DATABASE_URL=postgresql://user:password@db:5432/cifar10db
+      - WORKER_RUNNING=1
+    volumes:
+      - ./trained_models:/app/trained_models
     depends_on:
       rabbitmq:
         condition: service_healthy
@@ -109,6 +110,19 @@ services:
             - driver: nvidia
               count: 1
               capabilities: [gpu]
+
+  flower:
+    build: 
+      context: .
+      dockerfile: Dockerfile.api
+    command: celery -A celery_worker flower --port=5555 --address=0.0.0.0 --broker=amqp://guest:guest@rabbitmq:5672//
+    environment:
+      - DATABASE_URL=postgresql://user:password@db:5432/cifar10db
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+      celery_worker:
+        condition: service_started
 
 volumes:
   postgres_data:

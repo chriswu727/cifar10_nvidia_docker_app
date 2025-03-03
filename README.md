@@ -43,6 +43,7 @@ The application consists of several containerized services:
 - Frontend: http://localhost/
 - API Documentation: http://localhost/docs
 - RabbitMQ Monitor: http://localhost/rabbitmq/
+- Flower Dashboard: http://localhost/flower/
 - Prediction History: http://localhost/api/predictions
 
 ## Technologies Used

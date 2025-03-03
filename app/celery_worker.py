@@ -7,6 +7,7 @@ import base64
 from PIL import Image
 import io
 import torchvision.transforms as transforms
+import os
 
 # Initialize Celery
 celery_app = Celery('tasks', broker='amqp://guest:guest@rabbitmq:5672//')
@@ -15,19 +16,20 @@ celery_app = Celery('tasks', broker='amqp://guest:guest@rabbitmq:5672//')
 classes = ['airplane', 'automobile', 'bird', 'cat', 'deer',
            'dog', 'frog', 'horse', 'ship', 'truck']
 
-# Load model once at startup
-device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-model = get_model()
-model.load_state_dict(torch.load('/app/trained_models/cifar10_model.pth', map_location=device))
-model = model.to(device)
-model.eval()
+# Only load model when running as a worker
+if os.environ.get('WORKER_RUNNING'):
+    device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+    model = get_model()
+    model.load_state_dict(torch.load('/app/trained_models/cifar10_model.pth', map_location=device))
+    model = model.to(device)
+    model.eval()
 
-# Image transformation
-transform = transforms.Compose([
-    transforms.Resize((32, 32)),
-    transforms.ToTensor(),
-    transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))
-])
+    # Image transformation
+    transform = transforms.Compose([
+        transforms.Resize((32, 32)),
+        transforms.ToTensor(),
+        transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))
+    ])
 
 @celery_app.task
 def process_prediction(image_data, filename):
