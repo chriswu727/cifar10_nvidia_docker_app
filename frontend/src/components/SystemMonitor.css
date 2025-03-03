@@ -1,0 +1,103 @@
+/* Fix full page background by styling App component */
+.App {
+    background-color: #282c34;
+    min-height: 100vh;
+    width: 100%;
+}
+
+/* Fix system monitor layout */
+.system-monitor {
+    padding: 20px;
+    max-width: 1200px;
+    margin: 0 auto;
+    color: white;
+}
+
+/* Fix loading indicator */
+.loading-indicator {
+    color: #aaa;
+    font-size: 0.9em;
+    margin: 0;
+    padding: 0;
+    height: 20px;
+    position: absolute;
+    top: 0;
+}
+
+.monitor-section {
+    margin: 20px 0;
+    padding: 20px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+    position: relative;
+}
+
+.gpu-card {
+    padding: 15px;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 6px;
+}
+
+.metric {
+    margin: 15px 0;
+}
+
+.metric label {
+    display: block;
+    margin-bottom: 5px;
+    font-weight: bold;
+}
+
+.progress-bar {
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 4px;
+    height: 24px;
+    position: relative;
+    overflow: hidden;
+}
+
+.progress {
+    background: #4CAF50;
+    height: 100%;
+    transition: width 0.3s ease;
+}
+
+.progress-bar span {
+    position: absolute;
+    right: 8px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: white;
+    font-size: 12px;
+}
+
+.container-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    gap: 20px;
+}
+
+.container-card {
+    padding: 15px;
+    border-radius: 6px;
+    background: rgba(255, 255, 255, 0.05);
+    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+}
+
+.container-card.running {
+    border-left: 4px solid #4CAF50;
+}
+
+.container-card.stopped {
+    border-left: 4px solid #f44336;
+}
+
+.container-card h4 {
+    margin: 0 0 10px 0;
+    color: #333;
+}
+
+.status {
+    font-weight: bold;
+} 

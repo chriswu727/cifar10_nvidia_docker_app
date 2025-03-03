@@ -78,3 +78,6 @@ goal.txt
 notes/
 temp/
 .cache/ 
+
+# bug reports
+troubleshooting.md
