@@ -1,18 +1,18 @@
 version: '3.8'
 
 services:
-  model-service:
-    image: chriswyc/pytorch-cifar10-model-service:latest
-    deploy:
-      resources:
-        reservations:
-          devices:
-            - driver: nvidia
-              count: 1
-              capabilities: [gpu]
-    volumes:
-      - ./results:/app/results
-      - ./trained_models:/app/trained_models
+  # model-service:
+  #   image: chriswyc/pytorch-cifar10-model-service:latest
+  #   deploy:
+  #     resources:
+  #       reservations:
+  #         devices:
+  #           - driver: nvidia
+  #             count: 1
+  #             capabilities: [gpu]
+  #   volumes:
+  #     - ./results:/app/results
+  #     - ./trained_models:/app/trained_models
 
   db:
     image: postgres:13
@@ -51,8 +51,8 @@ services:
     depends_on:
       db:
         condition: service_healthy
-      model-service:
-        condition: service_started
+      # model-service:
+      #   condition: service_started
 
   frontend:
     build:
@@ -72,6 +72,43 @@ services:
     depends_on:
       - frontend
       - api
+
+  rabbitmq:
+    image: rabbitmq:3-management
+    ports:
+      - "5672:5672"   # AMQP protocol port
+      - "15672:15672" # Management UI port
+    environment:
+      - RABBITMQ_DEFAULT_USER=guest
+      - RABBITMQ_DEFAULT_PASS=guest
+    healthcheck:
+      test: ["CMD", "rabbitmqctl", "status"]
+      interval: 5s       # Reduced from 10s
+      timeout: 10s       # Reduced from 30s
+      retries: 5
+      start_period: 15s  # Reduced from 30s
+
+  celery_worker:
+    build: 
+      context: .
+      dockerfile: Dockerfile.api
+    command: celery -A celery_worker worker --loglevel=info --pool=solo
+    volumes:
+      - ./trained_models:/app/trained_models
+    environment:
+      - DATABASE_URL=postgresql://user:password@db:5432/cifar10db
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+      db:
+        condition: service_healthy
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
 
 volumes:
   postgres_data:

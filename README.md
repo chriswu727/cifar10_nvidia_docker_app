@@ -11,23 +11,38 @@ The application consists of several containerized services:
 
 2. **FastAPI Backend**
    - Provides REST API endpoints
-   - Handles image classification
+   - Queues prediction tasks
+   - Handles image uploads
 
-3. **React Frontend**
+3. **RabbitMQ Message Broker**
+   - Queues prediction tasks
+   - Manages task distribution
+   - Provides monitoring UI
+
+4. **Celery Worker** (GPU-enabled)
+   - Processes prediction tasks
+   - Runs model inference
+   - Updates prediction results
+
+5. **React Frontend**
    - User interface for image upload
    - Displays prediction results
+   - Polls for prediction updates
 
-4. **PostgreSQL Database**
+6. **PostgreSQL Database**
    - Stores prediction history
-   - Tracks user activities
+   - Tracks task status
+   - Records confidence scores
 
-5. **Nginx Reverse Proxy**
+7. **Nginx Reverse Proxy**
    - Routes all traffic through port 80
-   - Simplifies service access
+   - Handles service routing
+   - Manages WebSocket connections
 
-## Access Points
+## Access Points (All through Nginx)
 - Frontend: http://localhost/
 - API Documentation: http://localhost/docs
+- RabbitMQ Monitor: http://localhost/rabbitmq/
 - Prediction History: http://localhost/api/predictions
 
 ## Technologies Used
@@ -35,6 +50,8 @@ The application consists of several containerized services:
 - PyTorch
 - FastAPI
 - React
+- RabbitMQ
+- Celery
 - PostgreSQL
 - SQLAlchemy
 - Docker
@@ -44,6 +61,15 @@ The application consists of several containerized services:
 
 - `POST /predict`: Upload an image for classification
 - `GET /predictions`: Retrieve prediction history from database
+
+## Task Processing Flow
+
+1. User uploads image via frontend
+2. FastAPI receives image and creates initial database record
+3. Task is queued in RabbitMQ
+4. Celery worker picks up task and runs prediction
+5. Database is updated with results
+6. Frontend polls and displays prediction
 
 ## Database Schema
 

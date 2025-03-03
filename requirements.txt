@@ -6,4 +6,6 @@ torch
 torchvision
 matplotlib
 sqlalchemy
-psycopg2-binary 
+psycopg2-binary
+pika==1.3.1  # Python client for RabbitMQ
+celery==5.3.6 

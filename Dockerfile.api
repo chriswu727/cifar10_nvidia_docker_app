@@ -15,6 +15,7 @@ COPY app/main.py /app/main.py
 COPY app/database.py /app/database.py
 COPY app/init_db.py /app/init_db.py
 COPY app/models/database.py /app/models/database.py
+COPY app/celery_worker.py /app/celery_worker.py
 
 # Add current directory to Python path
 ENV PYTHONPATH=/app

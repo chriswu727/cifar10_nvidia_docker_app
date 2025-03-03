@@ -40,6 +40,25 @@ function App() {
     }
   };
 
+  // Add polling function
+  const pollPrediction = async (filename) => {
+    try {
+      const response = await fetch('/api/predictions');
+      const predictions = await response.json();
+      const result = predictions.find(p => p.filename === filename);
+      
+      if (result && result.prediction !== "Processing") {
+        setPrediction(result);
+        setLoading(false);
+        return true;
+      }
+      return false;
+    } catch (error) {
+      console.error('Error polling:', error);
+      return false;
+    }
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!file) return;
@@ -49,15 +68,24 @@ function App() {
     formData.append('file', file);
 
     try {
-      const response = await fetch('/api/predict', {
+      await fetch('/api/predict', {
         method: 'POST',
         body: formData,
       });
-      const data = await response.json();
-      setPrediction(data);
+      
+      // Start polling
+      const pollInterval = setInterval(async () => {
+        const done = await pollPrediction(file.name);
+        if (done) {
+          clearInterval(pollInterval);
+        }
+      }, 1000);
+
+      // Clear polling after 30 seconds
+      setTimeout(() => clearInterval(pollInterval), 30000);
+      
     } catch (error) {
       console.error('Error:', error);
-    } finally {
       setLoading(false);
     }
   };
@@ -100,7 +128,7 @@ function App() {
           )}
 
           {/* Prediction Result */}
-          {prediction && (
+          {prediction && prediction.prediction !== "Processing" && (
             <div className="prediction">
               <h2>Prediction Result:</h2>
               <p>Class: {prediction.prediction}</p>
