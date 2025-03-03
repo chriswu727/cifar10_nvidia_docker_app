@@ -36,10 +36,15 @@ The application consists of several containerized services:
 
 7. **Nginx Reverse Proxy**
    - Routes all traffic through port 80
-   - Handles service routing
-   - Manages WebSocket connections
+   - Simplifies service access
 
-## Access Points (All through Nginx)
+8. **Flower Dashboard**
+   - Monitors Celery tasks
+   - Tracks worker status
+   - Shows task success/failure rates
+   - Provides real-time task metrics
+
+## Access Points
 - Frontend: http://localhost/
 - API Documentation: http://localhost/docs
 - RabbitMQ Monitor: http://localhost/rabbitmq/
@@ -53,6 +58,7 @@ The application consists of several containerized services:
 - React
 - RabbitMQ
 - Celery
+- Flower
 - PostgreSQL
 - SQLAlchemy
 - Docker
